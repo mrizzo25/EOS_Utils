@@ -1,12 +1,16 @@
 import numpy as np 
 import MonotonicSpline as ms
+import os
 
 sol=2.99792458*10**10
+baryon_mass=1.66*10**(-24)
 
 #equations of state to choose from
-eos = {'HW_Glendenning5.8':'/home/monica/Documents/School_Stuff/Ad_Comp/final_project/HW_Glendenning5.8/eos.dat','alf1':'/home/monica/Documents/REU_Materials/EOS_Tables/alf1.dat','sly':'/home/monica/Documents/REU_Materials/EOS_Tables/sly.dat','ap4':'/home/monica/Documents/REU_Materials/EOS_Tables/ap4.dat'}
+eos = {file_name[:-4]:"/home/monica/Documents/REU_Materials/EOS_Tables/"+file_name for file_name in os.listdir("/home/monica/Documents/REU_Materials/EOS_Tables")}
 
-needs_conversions=['alf1','alf2','sly','ap4']
+eos_poly = {file_name[:-9]:"/home/monica/Documents/REU_Materials/Monica_EOS_Utils/Polytropes/"+file_name for file_name in os.listdir("/home/monica/Documents/REU_Materials/Monica_EOS_Utils/Polytropes")}
+
+eos.update(eos_poly)
 
 #read dictionary
 def find_eos(model_name):
@@ -15,18 +19,15 @@ def find_eos(model_name):
    else:
       print("Please enter valid EOS name")
 
-#import p and rho from table
+#import p, rho, and nb from table
 def p_rho_arrays(model_name):
     file_name = find_eos(model_name)
     dat_file = np.array(np.loadtxt(file_name))
 
-    if model_name in needs_conversions:
-      p=dat_file[:,1]*sol**2
-      rho=dat_file[:,2] 
-    else: 
-      p=dat_file[:,2]
-      rho=dat_file[:,1]
-    
+    nb=dat_file[:,0]/baryon_mass
+    p=dat_file[:,1]*sol**2
+    rho=dat_file[:,2]
+   
     return p,rho
 
 
@@ -67,8 +68,28 @@ def interp_eos_rho_of_p(model_name):
 
     return consts,line_upper,line_lower
 
+def interp_eos_nb_of_p(model_name):
+
+    nb,p,rho=p_rho_arrays(model_name)
+    n=len(p)
+
+    p=np.log10(p)
+    nb=np.log10(nb)
+
+    consts=ms.interpolate(p,nb)
+    line_const=ms.lin_extrapolate(p,nb)
+
+    #linearly interpolate anything outside range
+    line_lower=line_const[0,:]
+
+    line_upper=line_const[1,:]
+
+    return consts,line_upper,line_lower
 
 if __name__ == "__main__":
+   print "Available EOSs:"
+   print eos.keys()
+
    print "P(rho) check:"
    
    p,rho=p_rho_arrays('alf1')
