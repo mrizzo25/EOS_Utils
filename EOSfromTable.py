@@ -5,12 +5,10 @@ import os
 sol=2.99792458*10**10
 baryon_mass=1.66*10**(-24)
 
+eos_table_dir="/home/monica/Documents/REU_Materials/EOS_Tables/"
+
 #equations of state to choose from
-eos = {file_name[:-4]:"/home/monica/Documents/REU_Materials/EOS_Tables/"+file_name for file_name in os.listdir("/home/monica/Documents/REU_Materials/EOS_Tables")}
-
-eos_poly = {file_name[:-9]:"/home/monica/Documents/REU_Materials/Monica_EOS_Utils/Polytropes/"+file_name for file_name in os.listdir("/home/monica/Documents/REU_Materials/Monica_EOS_Utils/Polytropes")}
-
-eos.update(eos_poly)
+eos = {file_name[:-4]:eos_table_dir+file_name for file_name in os.listdir(eos_table_dir)}
 
 #read dictionary
 def find_eos(model_name):
@@ -19,22 +17,22 @@ def find_eos(model_name):
    else:
       print("Please enter valid EOS name")
 
-#import p, rho, and nb from table
+#import p and rho from table
 def p_rho_arrays(model_name):
     file_name = find_eos(model_name)
     dat_file = np.array(np.loadtxt(file_name))
 
     nb=dat_file[:,0]/baryon_mass
     p=dat_file[:,1]*sol**2
-    rho=dat_file[:,2]
-   
-    return p,rho
+    rho=dat_file[:,2] 
+       
+    return nb,p,rho
 
 
 #iterpolates Log10 of data
 def interp_eos_p_of_rho(model_name):
     
-    p,rho=p_rho_arrays(model_name)
+    nb,p,rho=p_rho_arrays(model_name)
     n=len(p)
     p=np.log10(p)
     rho=np.log10(rho)
@@ -52,7 +50,7 @@ def interp_eos_p_of_rho(model_name):
 #interpolates Log10 of data
 def interp_eos_rho_of_p(model_name):
     
-    p,rho=p_rho_arrays(model_name)
+    nb,p,rho=p_rho_arrays(model_name)
     n=len(p)
 
     p=np.log10(p)
@@ -86,9 +84,12 @@ def interp_eos_nb_of_p(model_name):
 
     return consts,line_upper,line_lower
 
+
 if __name__ == "__main__":
    print "Available EOSs:"
    print eos.keys()
+
+
 
    print "P(rho) check:"
    
