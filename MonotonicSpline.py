@@ -19,9 +19,9 @@ def interpolate(x_values,y_values):
   for i in np.arange(0,n-1,1):
         h[i]=x_values[i+1]-x_values[i]
         m[i]=(y_values[i+1]-y_values[i])/h[i]
-
-  consts[0,0]=0.
-  consts[n-1,0]=0.
+   
+  consts[0,0]=m[0]
+  consts[n-1,0]=m[-1]
 
   for i in np.arange(1,n-1,1):
        if (m[i-1]*m[i]<=0.):
@@ -54,3 +54,26 @@ def lin_extrapolate(x_values,y_values):
    line_consts=np.array([[m1,b1],[m2,b2]])
 
    return line_consts
+
+def interp_func(x,x_table,y_table,consts,line_consts=None):
+    for i in np.arange(0,len(x_table)-1,1):
+       if x_table[i]<x and x_table[i+1]>x:
+          return y_table[i]+consts[i,0]*(x-x_table[i])+consts[i,1]*(x-x_table[i])**2+consts[i,2]*(x-x_table[i])**3
+       elif x==x_table[i]:
+          return y_table[i]
+       elif x==x_table[i+1]:
+          return y_table[i+1]
+    if line_consts!=None:
+       if x<x_table[0]:
+          return line_consts[0,0]*x+line_consts[0,1]
+       elif x>x_table[-1]:
+          return line_consts[1,0]*x+line_consts[1,1]
+
+
+
+
+
+
+
+
+
